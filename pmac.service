@@ -1,0 +1,10 @@
+[Unit]
+Description=Poor Mans A/C
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/Documents/pmac/pmac.py
+
+[Install]
+WantedBy=multi-user.target
