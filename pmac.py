@@ -2,14 +2,24 @@ from gpiozero import Button, PWMLED
 from signal import pause
 from w1thermsensor import W1ThermSensor
 from time import sleep
+import RPi.GPIO as GPIO
 import I2C_LCD_driver
 
 lcd = I2C_LCD_driver.lcd()
 outsideSensor = W1ThermSensor(W1ThermSensor.THERM_SENSOR_DS18B20, "0317042d7bff")
 insideSensor = W1ThermSensor(W1ThermSensor.THERM_SENSOR_DS18B20, "0317207671ff")
-led = PWMLED(17)
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(17, GPIO.OUT)
+GPIO.output(17, GPIO.LOW)
 
 lowTemp = 35.0
+
+def turn_fan_on():
+    GPIO.output(17, GPIO.HIGH)
+    
+def turn_fan_off():
+    GPIO.output(17, GPIO.LOW)
 
 def update_outsideTemp():
     global outsideTemp
@@ -29,15 +39,13 @@ def lower_temp():
     global lowTemp
     if lowTemp > 32.1:
         lowTemp -= 0.1
-    print(lowTemp)
-    led.on()
+    update_lcd()
 
 def raise_temp():
     global lowTemp
     if lowTemp < 100.1:
         lowTemp += 0.1
-    print(lowTemp)
-    led.off()
+    update_lcd()
 
 buttonDown = Button(4)
 buttonUp = Button(14)
@@ -49,4 +57,8 @@ while True:
     update_insideTemp()
     update_outsideTemp()
     update_lcd()
+    if outsideTemp < insideTemp and insideTemp > lowTemp:
+        turn_fan_on()
+    else:
+        turn_fan_off()
     sleep(1)
