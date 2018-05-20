@@ -1,5 +1,4 @@
-from gpiozero import Button, PWMLED
-from signal import pause
+from gpiozero import Button
 from w1thermsensor import W1ThermSensor
 from time import sleep
 import RPi.GPIO as GPIO
@@ -31,14 +30,14 @@ def save_config():
 
 def turn_fan_on():
     GPIO.output(17, GPIO.HIGH)
-    
+
 def turn_fan_off():
     GPIO.output(17, GPIO.LOW)
 
 def update_outsideTemp():
     global outsideTemp
     outsideTemp = outsideSensor.get_temperature(W1ThermSensor.DEGREES_F)
-    
+
 def update_insideTemp():
     global insideTemp
     insideTemp = insideSensor.get_temperature(W1ThermSensor.DEGREES_F)
@@ -46,12 +45,13 @@ def update_insideTemp():
 def update_lcd():
     global outsideTemp,insideTemp,config,fan_on
     while True:
-        lcd.lcd_display_string("Outside Temp: %.1f  " % outsideTemp, 1)
-        lcd.lcd_display_string("Inside Temp:  %.1f  " % insideTemp, 2)
-        lcd.lcd_display_string("Desired Temp: %.1f  " % config["low_temp"], 3)
-        lcd.lcd_display_string("Fan on: %s  " % fan_on, 4)
-        sleep(2)
-    
+        lcd.lcd_display_string(
+               	"Outside Temp: %6.1f" % outsideTemp +
+        	"Desired Temp: %6.1f" % config["low_temp"] +
+		"Inside Temp:  %6.1f" % insideTemp +
+        	"Fan on:        %5s" % fan_on, 1)
+        sleep(.1)
+
 lcd_thread = threading.Thread(target=update_lcd, args=())
 lcd_thread.daemon = True
 lcd_thread.start()
@@ -67,7 +67,7 @@ def raise_temp():
     if config["low_temp"] < 100.1:
         config["low_temp"] += 0.1
         save_config()
-        
+
 def update_fan():
     global outsideTemp, insideTemp, config, fan_on
     if insideTemp - outsideTemp > 1 and insideTemp > float(config["low_temp"]):
@@ -78,8 +78,8 @@ def update_fan():
 buttonDown = Button(4)
 buttonUp = Button(14)
 
-buttonDown.when_pressed = lower_temp
-buttonUp.when_pressed = raise_temp
+buttonDown.when_released = lower_temp
+buttonUp.when_released = raise_temp
 
 while True:
     update_insideTemp()
