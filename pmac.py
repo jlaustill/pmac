@@ -24,37 +24,45 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 GPIO.output(17, GPIO.LOW)
 
+
 def save_config():
     with open(config_file, 'w') as cf:
         json.dump(config, cf)
 
+
 def turn_fan_on():
     GPIO.output(17, GPIO.HIGH)
 
+
 def turn_fan_off():
     GPIO.output(17, GPIO.LOW)
+
 
 def update_outsideTemp():
     global outsideTemp
     outsideTemp = outsideSensor.get_temperature(W1ThermSensor.DEGREES_F)
 
+
 def update_insideTemp():
     global insideTemp
     insideTemp = insideSensor.get_temperature(W1ThermSensor.DEGREES_F)
 
+
 def update_lcd():
-    global outsideTemp,insideTemp,config,fan_on
+    global outsideTemp, insideTemp, config, fan_on
     while True:
         lcd.lcd_display_string(
-               	"Outside Temp: %6.1f" % outsideTemp +
-        	"Desired Temp: %6.1f" % config["low_temp"] +
-		"Inside Temp:  %6.1f" % insideTemp +
-        	"Fan on:        %5s" % fan_on, 1)
+            "Outside Temp: %6.1f" % outsideTemp +
+            "Desired Temp: %6.1f" % config["low_temp"] +
+            "Inside Temp:  %6.1f" % insideTemp +
+            "Fan on:        %5s" % fan_on, 1)
         sleep(.1)
+
 
 lcd_thread = threading.Thread(target=update_lcd, args=())
 lcd_thread.daemon = True
 lcd_thread.start()
+
 
 def lower_temp():
     global config
@@ -62,11 +70,13 @@ def lower_temp():
         config["low_temp"] -= 0.1
         save_config()
 
+
 def raise_temp():
     global config
     if config["low_temp"] < 100.1:
         config["low_temp"] += 0.1
         save_config()
+
 
 def update_fan():
     global outsideTemp, insideTemp, config, fan_on
@@ -74,6 +84,7 @@ def update_fan():
         fan_on = True
     else:
         fan_on = False
+
 
 buttonDown = Button(4)
 buttonUp = Button(14)
